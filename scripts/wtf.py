@@ -367,7 +367,16 @@ def main():
         platformdirs.user_config_dir("open-interpreter"), "profiles", "default.yaml"
     )
 
-    
+    try:
+        with open(default_profile_path, "r") as file:
+            profile = yaml.safe_load(file)
+            wtf_model = profile.get("wtf", {}).get("model")
+            if wtf_model:
+                model = wtf_model
+            else:
+                model = profile.get("llm", {}).get("model", "gpt-4o-mini")
+    except:
+        model = "gpt-4o-mini"
 
 # If they're using a local model (improve this heuristic) use the LOCAL_SYSTEM_MESSAGE
 if "ollama" in model or "llama" in model:
