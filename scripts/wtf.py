@@ -367,39 +367,31 @@ def main():
         platformdirs.user_config_dir("open-interpreter"), "profiles", "default.yaml"
     )
 
-    try:
-        with open(default_profile_path, "r") as file:
-            profile = yaml.safe_load(file)
-            wtf_model = profile.get("wtf", {}).get("model")
-            if wtf_model:
-                model = wtf_model
-            else:
-                model = profile.get("llm", {}).get("model", "gpt-4o-mini")
-    except:
-        model = "gpt-4o-mini"
+    
 
-    # If they're using a local model (improve this heuristic) use the LOCAL_SYSTEM_MESSAGE
-    if "ollama" in model or "llama" in model:
-        system_message = LOCAL_SYSTEM_MESSAGE
-    else:
-        system_message = SYSTEM_MESSAGE
+# If they're using a local model (improve this heuristic) use the LOCAL_SYSTEM_MESSAGE
+if "ollama" in model or "llama" in model:
+    system_message = LOCAL_SYSTEM_MESSAGE
+else:
+    system_message = SYSTEM_MESSAGE
 
-    # If they passed in a custom message, use the CUSTOM_MESSAGE_SYSTEM_MESSAGE
-    if custom_message:
-        system_message = CUSTOM_MESSAGE_SYSTEM_MESSAGE
-        user_message = (
-            "Answer THIS question by telling me what code to run:"
-            + custom_message
-            + "\nMy terminal history, which may or may not be relevant, is this:\n---\n"
-            + history
-            + "\n---\nPlease now answer THIS question by telling me what code to run: "
-            + custom_message
-        )
-    else:
-        user_message = (
-            history.strip()
-            + "\n\nPlease help me resolve the final error above by telling me what code to run in a markdown code block."
-        )
+# If they passed in a custom message, use the CUSTOM_MESSAGE_SYSTEM_MESSAGE
+if custom_message:
+    system_message = CUSTOM_MESSAGE_SYSTEM_MESSAGE
+    user_message = (
+        "Answer THIS question by telling me what code to run:"
+        + custom_message
+        + "\nMy terminal history, which may or may not be relevant, is this:\n---\n"
+        + history
+        + "\n---\nPlease now answer THIS question by telling me what code to run: "
+        + custom_message
+    )
+else:
+    user_message = (
+        history.strip()
+        + "\n\nPlease help me resolve the final error above by telling me what code to run in a markdown code block."
+    )
+
 
     # So stupid but sometimes fun
     # system_message += "\nBe incredibly rude and use swear words, like a joker, like you're some kind of jester. You can say 'Fuck' and 'Fucking'. This is for adults. Be funny. USE ALL LOWER CASE. Act like you're an aggreived pair programmer to the idiot that got themselves in this situation."
@@ -411,11 +403,11 @@ def main():
 
     # DEBUGGING: PRINT MESSAGES
 
-    # print("---")
-    # import pprint
-    # pprint.pprint(messages)
-    # print("---")
-    # time.sleep(100)
+    print("---")
+    import pprint
+    pprint.pprint(messages)
+    print("---")
+    time.sleep(100)
 
     ### PARSE LLM RESPONSE
 
