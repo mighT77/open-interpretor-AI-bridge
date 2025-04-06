@@ -337,13 +337,15 @@ def main():
         try:
             with open(filename, "r") as file:
                 all_lines = file.readlines()
-                start_line = max(0, line_number - 3)  # Preceding lines
-                end_line = min(len(all_lines), line_number + 2)  # Following lines
+                start_line = max(0, line_number - 5) 
+                end_line = min(len(all_lines), line_number + 5)
                 for i in range(start_line, end_line + 1):
                     lines.append(f"Line {i+1}: " + all_lines[i].rstrip())
         except Exception as e:
             lines.append(f"Error reading file: {e}")
         return lines
+
+    
 
     # Create the dictionary with filename, line number, and text
     result = []
@@ -355,17 +357,38 @@ def main():
 
     if result != []:
         history = "Terminal: " + history
+        
+        history += "\n\nError Context:\n"
 
-    # Add context
+
     for entry in result:
         history = f"""File: {entry["filename"]}\n{entry["text"]}\n\n""" + history
+        import logging
 
-    ### PREPARE FOR LLM
+        logging.basicConfig(filename="wtf_debug.log", level=logging.DEBUG)
 
-    # Get LLM model from profile
-    default_profile_path = os.path.join(
-        platformdirs.user_config_dir("open-interpreter"), "profiles", "default.yaml"
-    )
+        logging.debug(f"Terminal History: {history}")
+
+        logging.debug(f"Selected Model: {model}")
+
+
+    if "SyntaxError" in history or "IndentationError" in history:
+        history += "\n\nSuggested Command: pytest --maxfail=1 --disable-warnings"
+    elif "docker" in history:
+        history += "\n\nSuggested Command: docker ps"
+    elif "kubectl" in history:
+        history += "\n\nSuggested Command: kubectl get pods"
+    
+
+
+    if "git" in history:
+        history += "\n\nSuggested Command: git status"
+    elif "npm" in history:
+        history += "\n\nSuggested Command: npm install"
+        # get llm model        
+        default_profile_path = os.path.join(
+            platformdirs.user_config_dir("open-interpreter"), "profiles", "default.yaml"
+        )
 
     try:
         with open(default_profile_path, "r") as file:
@@ -375,6 +398,7 @@ def main():
                 model = wtf_model
             else:
                 model = profile.get("llm", {}).get("model", "gpt-4o-mini")
+            
     except:
         model = "gpt-4o-mini"
 
